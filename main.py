@@ -27,8 +27,8 @@ class Ball(Widget):
         self.opponent = opponent
 
     def move(self):
-        self.pos[0] += self.vel[0] * 4
-        self.pos[1] += self.vel[1] * 4
+        self.pos[0] += self.vel[0] * 3
+        self.pos[1] += self.vel[1] * 3
 
         # Bounce off walls
         if self.y < 0 or self.y > Window.height - 20:
@@ -46,9 +46,15 @@ class PongGame(Widget):
         self.opponent = Paddle(pos=[Window.width-40, Window.height/2-40])
         self.ball = Ball(paddle=self.paddle, opponent=self.opponent, pos=[Window.width/2, Window.height/2])
 
-        self.add_widget(self.ball)
-        self.add_widget(self.paddle)
-        self.add_widget(self.opponent)
+        # Add graphics for paddles
+        self.paddle_rect = Rectangle(pos=self.paddle.pos, size=(10, 80))
+        self.opponent_rect = Rectangle(pos=self.opponent.pos, size=(10, 80))
+        self.canvas.add(self.paddle_rect)
+        self.canvas.add(self.opponent_rect)
+
+        # Add graphics for ball
+        self.ball_ellipse = Ellipse(pos=self.ball.pos, size=(20, 20))
+        self.canvas.add(self.ball_ellipse)
 
         self.keys_pressed = []
 
@@ -66,6 +72,11 @@ class PongGame(Widget):
             self.opponent.move_up()
         if self.ball.x < 50:
             self.opponent.move_down()
+
+        # Update the positions of the graphics elements
+        self.paddle_rect.pos = self.paddle.pos
+        self.opponent_rect.pos = self.opponent.pos
+        self.ball_ellipse.pos = self.ball.pos
 
         self.check_win()
 
