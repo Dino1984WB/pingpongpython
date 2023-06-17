@@ -71,9 +71,11 @@ class PongGame(Widget):
     def check_win(self):
         if self.ball.x < -50:
             print("You win!")
+            Window.close()
             self.ball.vel = [0, 0]
         if self.ball.x > self.width + 50:
             print("You lose!")
+            Window.close()
             self.ball.vel = [0, 0]
 
 
