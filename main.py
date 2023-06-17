@@ -1,73 +1,57 @@
-import PySimpleGUI as sg
-import random
+from kivy.app import App
+from kivy.uix.widget import Widget
+from kivy.graphics import Rectangle, Ellipse
+from kivy.core.window import Window
+from kivy.clock import Clock
+from random import choice
 
-# Set up the game window
-width, height = 800, 400
-layout = [
-    [sg.Canvas(size=(width, height), key="-CANVAS-")],
-    [sg.Text("Player: 0", key="-PLAYER-SCORE-"), sg.Text("Opponent: 0", key="-OPPONENT-SCORE-")],
-    [sg.Button("Exit")]
-]
+# Set up the game window size
+Window.size = (800, 400)
 
-window = sg.Window("Pong", layout, finalize=True)
-canvas = window["-CANVAS-"]
 
-# Define the ball properties
-ball_radius = 10
-ball_pos = [width // 2, height // 2]
-ball_vel = [random.choice([-1, 1]), random.choice([-1, 1])]
+class Paddle(Widget):
+    def move_up(self):
+        self.pos[1] += 10
 
-# Define the paddle properties
-paddle_width = 10
-paddle_height = 60
-paddle_speed = 5
-paddle_pos = [0, height // 2 - paddle_height // 2]
+    def move_down(self):
+        self.pos[1] -= 10
 
-# Define the opponent paddle properties
-opponent_pos = [width - paddle_width, height // 2 - paddle_height // 2]
 
-# Define the score variables
-player_score = 0
-opponent_score = 0
+class Ball(Widget):
+    def __init__(self, **kwargs):
+        super(Ball, self).__init__(**kwargs)
+        self.vel = (choice([-1, 1]), choice([-1, 1]))  # Random initial velocity
 
-# Game loop
-while True:
-    event, values = window.read(timeout=20)
+    def move(self):
+        self.pos[0] += self.vel[0] * 4
+        self.pos[1] += self.vel[1] * 4
 
-    if event == "Exit" or event == sg.WINDOW_CLOSED:
-        break
+        # Bounce off walls
+        if self.y < 0 or self.y > Window.height - 20:
+            self.vel[1] *= -1
 
-    # Update ball position
-    ball_pos[0] += ball_vel[0] * 2
-    ball_pos[1] += ball_vel[1] * 2
+        # Bounce off paddles
+        if self.collide_widget(paddle) or self.collide_widget(opponent):
+            self.vel[0] *= -1
 
-    # Ball collision with walls
-    if ball_pos[1] >= height - ball_radius or ball_pos[1] <= ball_radius:
-        ball_vel[1] *= -1
 
-    # Ball collision with paddles
-    if ball_pos[0] <= paddle_width and paddle_pos[1] - ball_radius <= ball_pos[1] <= paddle_pos[1] + paddle_height:
-        ball_vel[0] *= -1
-        player_score += 1
-        window["-PLAYER-SCORE-"].update("Player: {}".format(player_score))
-    elif ball_pos[0] >= width - paddle_width - ball_radius and opponent_pos[1] - ball_radius <= ball_pos[1] <= opponent_pos[1] + paddle_height:
-        ball_vel[0] *= -1
-        opponent_score += 1
-        window["-OPPONENT-SCORE-"].update("Opponent: {}".format(opponent_score))
+class PongGame(Widget):
+    def __init__(self, **kwargs):
+        super(PongGame, self).__init__(**kwargs)
+        self.ball = Ball(pos=(Window.width/2, Window.height/2))
+        self.paddle = Paddle(pos=(20, Window.height/2-40))
+        self.opponent = Paddle(pos=(Window.width-40, Window.height/2-40))
 
-    # Update opponent paddle position
-    if opponent_pos[1] + paddle_height // 2 < ball_pos[1]:
-        opponent_pos[1] += paddle_speed
-    else:
-        opponent_pos[1] -= paddle_speed
+        self.add_widget(self.ball)
+        self.add_widget(self.paddle)
+        self.add_widget(self.opponent)
 
-    # Clear the canvas
-    canvas.erase()
+        self.keys_pressed = []
 
-    # Draw the game elements
-    canvas.draw_line((width // 2, 0), (width // 2, height), color="white")
-    canvas.draw_circle(ball_pos, ball_radius, fill_color="white", line_color="white")
-    canvas.draw_rectangle(paddle_pos, (paddle_pos[0] + paddle_width, paddle_pos[1] + paddle_height), fill_color="white", line_color="white")
-    canvas.draw_rectangle(opponent_pos, (opponent_pos[0] + paddle_width, opponent_pos[1] + paddle_height), fill_color="white", line_color="white")
+        Clock.schedule_interval(self.update, 1/60.)
 
-window.close()
+    def update(self, dt):
+        self.ball.move()
+
+        if "w" in self.keys_pressed:
+            self
