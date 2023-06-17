@@ -1,5 +1,4 @@
 #Author: William Bukowski, using chatgpt to make this pong game with a gui in python 3
-
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.graphics import Rectangle, Ellipse
@@ -67,52 +66,39 @@ class PongGame(Widget):
         Clock.schedule_interval(self.update, 1/60.)
 
     def update(self, dt):
-        self.ball.move()  # Move the ball
+        self.ball.move()
 
-        if 'w' in self.keys_pressed:
-            self.paddle.move_up()  # Move the player's paddle up when the 'w' key is pressed
-        if 's' in self.keys_pressed:
-            self.paddle.move_down()  # Move the player's paddle down when the 's' key is pressed
+        # Move the player's paddle using mouse touch
+        for touch in self.touches:
+            if touch.x < self.width / 2:
+                self.paddle.center_y = touch.y
 
         if self.ball.x > self.width - 50:
-            self.opponent.move_up()  # Move the opponent's paddle up when the ball is on the opponent's side
+            self.opponent.move_up()
         if self.ball.x < 50:
-            self.opponent.move_down()  # Move the opponent's paddle down when the ball is on the opponent's side
+            self.opponent.move_down()
 
         # Update the positions of the graphics elements
-        self.paddle_rect.pos = self.paddle.pos  # Update the player's paddle position
-        self.opponent_rect.pos = self.opponent.pos  # Update the opponent's paddle position
-        self.ball_ellipse.pos = self.ball.pos  # Update the ball position
+        self.paddle_rect.pos = self.paddle.pos
+        self.opponent_rect.pos = self.opponent.pos
+        self.ball_ellipse.pos = self.ball.pos
 
-        self.check_win()  # Check if there is a win condition
+        self.check_win()
 
     def check_win(self):
         if self.ball.x < -50:
-            print("You win!")  # Print a message when the ball goes off the left side of the screen
-            self.ball.vel = [0, 0]  # Stop the ball
+            print("You win!")
+            self.ball.vel = [0, 0]
         if self.ball.x > self.width + 50:
-            print("You lose!")  # Print a message when the ball goes off the right side of the screen
-            self.ball.vel = [0, 0]  # Stop the ball
-
-    def on_key_down(self, keycode, modifiers):
-        if keycode[1] == 'w':
-            self.keys_pressed.add('w')  # Add 'w' to the set of pressed keys
-        elif keycode[1] == 's':
-            self.keys_pressed.add('s')  # Add 's' to the set of pressed keys
-
-    def on_key_up(self, keycode):
-        if keycode[1] == 'w' and 'w' in self.keys_pressed:
-            self.keys_pressed.remove('w')  # Remove 'w' from the set of pressed keys
-        elif keycode[1] == 's' and 's' in self.keys_pressed:
-            self.keys_pressed.remove('s')  # Remove 's' from the set of pressed keys
+            print("You lose!")
+            self.ball.vel = [0, 0]
 
 
 class PongApp(App):
     def build(self):
-        game = PongGame()  # Create the PongGame instance
-        Window.bind(on_key_down=game.on_key_down, on_key_up=game.on_key_up)  # Bind the key events to the game
+        game = PongGame()
         return game
 
 
 if __name__ == '__main__':
-    PongApp().run()  # Run the PongApp
+    PongApp().run()
